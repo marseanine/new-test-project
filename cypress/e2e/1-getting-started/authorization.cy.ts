@@ -1,6 +1,9 @@
 /// <reference types="cypress" />
 
 describe('Authorization', () => {
+  //beforeEach(() => {
+    //cy.viewport(1536, 960)
+  //})
     it('Enter login and password, authorize and checks the interface', () => {
 
       // Entering login and password through the browser authentication window
