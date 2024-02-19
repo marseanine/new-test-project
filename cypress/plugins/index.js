@@ -1,4 +1,7 @@
 /// <reference types="cypress" />
+// cypress/support/index.js
+import '@4tw/cypress-drag-drop'
+
 // ***********************************************************
 // This example plugins/index.js can be used to load plugins
 //
