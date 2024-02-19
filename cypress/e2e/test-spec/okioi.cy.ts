@@ -23,6 +23,7 @@ describe("Testing edition of VAT", () => {
       cy.xpath('//*[@id="account"]/button').click();
 
       cy.wait(10000);
+
       // Wait for the drawer element to appear on the dashboard page
       cy.xpath('//*[@id="app"]/div[1]/div/div[1]/div/div[1]', {
         timeout: 10000,
@@ -35,23 +36,23 @@ describe("Testing edition of VAT", () => {
     }
   });
 
-  it("should click on the document Telenet BV", () => {
+  it("editing Amount incl. VAT field", () => {
     // Open document page
     cy.visit(
       "https://www.okioki.app/booking/b141d57c-a65d-4ad5-d694-08dac681ea18"
     );
     cy.wait(5000);
 
-    // Проверяем наличие элемента с названием Telenet BV
+    // Checking for the presence of an element called Telenet BV
     cy.get("div.flex-row:nth-child(2)")
       .should("exist")
       .contains("Telenet BV")
       .click();
 
-    // Генерируем случайное число
-    const randomNumber = Math.floor(Math.random() * 1000); // Генерируем число от 0 до 999
+    // Generating a random number (from 0 to 999)
+    const randomNumber = Math.floor(Math.random() * 1000);
 
-    // Вводим сгенерированное случайное число в поле Amount incl. VAT
+    // Enter the generated random number in the Amount incl field. VAT
     cy.get(
       "li.props-table-item:nth-child(3) > div:nth-child(1) > span:nth-child(2) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1)"
     )
@@ -59,7 +60,7 @@ describe("Testing edition of VAT", () => {
       .clear()
       .type(randomNumber.toString());
 
-    // Проверяем, что текст в шапке соответствует введенному значению в поле Amount incl. VAT
+    // Check that the text in the header matches the entered value in the Amount incl field. VAT
     cy.get(".amount-negative").click();
 
     cy.wait(2000);
@@ -67,80 +68,83 @@ describe("Testing edition of VAT", () => {
     cy.get(".amount-negative")
       .invoke("text")
       .then((text) => {
-        // Преобразуем значения в числа с плавающей точкой и сравниваем их
+        // Convert the values to floating point numbers and compare them
         const inputNumber = parseFloat(text.replace(/,/g, "."));
         const expectedNumber = -randomNumber;
         expect(inputNumber).to.equal(expectedNumber);
       });
 
-    // Получаем текст из первого поля и преобразуем его в число
+    // Check that the value in the Amount excl. VAT is considered correct
+    // Get the text from the Amount incl field. VAT and convert it to a number
     cy.get(
       "li.props-table-item:nth-child(3) > div:nth-child(1) > span:nth-child(2) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1)"
     )
       .invoke("text")
       .then((text) => {
-        cy.log("Original text:", text); // Логируем полученный текст
+        cy.log("Original text:", text); // Logging the received text
 
-        // Очищаем текст от всех символов, кроме цифр и запятых
+        // Clear the text of all characters except numbers and commas
         const cleanedText = text.replace(/[^\d,]/g, "");
         cy.log("Cleaned text:", cleanedText);
 
-        // Преобразуем текст в число
+        // Convert text to number
         const originalNumber = parseFloat(cleanedText.replace(/,/g, "."));
         cy.log("Original number:", originalNumber);
 
-        // Получаем текст из нового поля с процентом
+        // Getting text from the Rate field with a percentage
         cy.get(
           "#app > div.oki-main-container.full-height.container-fluid.main-active > div > div.px-0.mx-0.full-height.main-container.col > div > div.page-container.d-flex.flex-column.full-height.full-width > div.okioki-container.full-height.flex-grow-1.container-fluid.dark > div > div.okioki-container.d-flex.flex-column.full-height.col.standard.second-pane.col-lg-4 > div > div > div > div > div.scan-row > div > div.px-normal.flex-grow-1.pb-wide.scroll-box.scrollbar-light > ul > li.props-table-item.vat-section-body > div.single-line > span > table > tbody > tr > td.first-col > div > div > div"
         )
           .invoke("text")
           .then((percentageText) => {
-            // Преобразуем процент в строку и очищаем его от лишних символов
+            // Convert the percentage to a string and clear it of extra characters
             const cleanedPercentageText: string = percentageText
               .toString()
               .replace(/[^\d,]/g, "");
 
-            // Преобразуем процент в число (например, 21% => 1,21)
+            // Convert percentage to number
             const percentageNumber: number =
               parseFloat(cleanedPercentageText.replace(/,/g, ".")) / 100 + 1;
 
-            // Если удалось преобразовать текст в число, продолжаем выполнение
+            // If were able to convert the text to a number, continue execution
             if (!isNaN(originalNumber) && !isNaN(percentageNumber)) {
               const dividedNumber: number = originalNumber / percentageNumber;
 
-              // Получаем текст из нового поля
+              // Get the text from the Amount excl field. VAT
               cy.get(
                 "#app > div.oki-main-container.full-height.container-fluid.main-active > div > div.px-0.mx-0.full-height.main-container.col > div > div.page-container.d-flex.flex-column.full-height.full-width > div.okioki-container.full-height.flex-grow-1.container-fluid.dark > div > div.okioki-container.d-flex.flex-column.full-height.col.standard.second-pane.col-lg-4 > div > div > div > div > div.scan-row > div > div.px-normal.flex-grow-1.pb-wide.scroll-box.scrollbar-light > ul > li:nth-child(4) > div.single-line > span.value > div > div.wrapper.editable.justify-content-end > div"
               )
                 .invoke("text")
                 .then((newText) => {
-                  cy.log("New text:", newText);
+                  cy.log("New text:", newText); // Logging the received text
 
-                  // Очищаем новый текст от всех символов, кроме цифр и запятых
+                  // Clear the text of all characters except numbers and commas
                   const cleanedNewText: string = newText.replace(/[^\d,]/g, "");
                   cy.log("Cleaned new text:", cleanedNewText);
 
-                  // Преобразуем очищенный новый текст в число
+                  // Convert the cleaned text into a number
                   const newNumber: number = parseFloat(
                     cleanedNewText.replace(/,/g, ".")
                   );
 
-                  // Округляем число до двух знаков после запятой
+                  // Round the number to two decimal places
                   const roundedDividedNumber: number = Number(
                     dividedNumber.toFixed(2)
                   );
 
-                  // Сравниваем округленные значения
+                  // Comparing rounded values
                   expect(newNumber).to.equal(roundedDividedNumber);
                 });
             } else {
-              // Если не удалось преобразовать текст в число, выводим сообщение об ошибке
+              // If it wasn't possible to convert text to a number, we display an error message
               cy.log(
                 "Failed to convert original text or percentage text to number"
               );
             }
           });
-        // Получаем текст из первого поля
+
+        // Check that the value in the Amount incl field. VAT matches the value in the Amount to pay field
+        // Get the text from the Amount incl. VAT field
         cy.get(
           "li.props-table-item:nth-child(3) > div:nth-child(1) > span:nth-child(2) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1)"
         )
@@ -148,15 +152,15 @@ describe("Testing edition of VAT", () => {
           .then((text1) => {
             cy.log("Text from first field:", text1);
 
-            // Очищаем текст от всех символов, кроме цифр и запятых
+            // Clear the text of all characters except numbers and commas
             const cleanedText1: string = text1.replace(/[^\d,]/g, "");
             cy.log("Cleaned text from first field:", cleanedText1);
 
-            // Преобразуем очищенный текст в число
+            // Convert the cleaned text into a number
             const number1: number = parseFloat(cleanedText1.replace(/,/g, "."));
             cy.log("Number from first field:", number1);
 
-            // Получаем текст из второго поля
+            // Get the text from the Amount to pay field
             cy.get(
               "li.props-table-item:nth-child(7) > div:nth-child(2) > span:nth-child(2) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1)"
             )
@@ -164,21 +168,21 @@ describe("Testing edition of VAT", () => {
               .then((text2) => {
                 cy.log("Text from second field:", text2);
 
-                // Очищаем текст от всех символов, кроме цифр и запятых
+                // Clear the text of all characters except numbers and commas
                 const cleanedText2: string = text2.replace(/[^\d,]/g, "");
                 cy.log("Cleaned text from second field:", cleanedText2);
 
-                // Преобразуем очищенный текст в число
+                // Convert the cleaned text into a number
                 const number2: number = parseFloat(
                   cleanedText2.replace(/,/g, ".")
                 );
                 cy.log("Number from second field:", number2);
 
-                // Пытаемся выполнить проверку на равенство чисел
+                // Checking for equality of numbers
                 try {
                   expect(number1).to.equal(number2);
                 } catch (error) {
-                  // Если числа не равны, выведем сообщение в лог
+                  // If the numbers are not equal, display a message in the log
                   const errorMessage =
                     error instanceof Error ? error.message : "Unknown error";
                   cy.log("Numbers are not equal:", errorMessage);
@@ -186,125 +190,122 @@ describe("Testing edition of VAT", () => {
               });
           });
       });
-    // Получаем текст из первого поля и преобразуем его в число
+
+    // Compare the value in the Amount excl. VAT field and the value in the Excl. VAT field
+    // We get the text from the Amount excl. VAT field and convert it to a number
     cy.get(
       "#app > div.oki-main-container.full-height.container-fluid.main-active > div > div.px-0.mx-0.full-height.main-container.col > div > div.page-container.d-flex.flex-column.full-height.full-width > div.okioki-container.full-height.flex-grow-1.container-fluid.dark > div > div.okioki-container.d-flex.flex-column.full-height.col.standard.second-pane.col-lg-4 > div > div > div > div > div.scan-row > div > div.px-normal.flex-grow-1.pb-wide.scroll-box.scrollbar-light > ul > li:nth-child(4) > div.single-line > span.value > div > div.wrapper.editable.justify-content-end > div"
     )
       .invoke("text")
       .then((text1) => {
-        cy.log("Original text 1:", text1); // Логируем полученный текст
+        cy.log("Original text 1:", text1); // Logging the received text
 
-        // Очищаем текст от всех символов, кроме цифр и запятых
+        // Clear the text of all characters except numbers and commas
         const cleanedText1 = text1.replace(/[^\d,]/g, "");
         cy.log("Cleaned text 1:", cleanedText1);
 
-        // Преобразуем текст в число
+        // Convert text to number
         const number1 = parseFloat(cleanedText1.replace(/,/g, "."));
         cy.log("Number 1:", number1);
 
-        // Получаем текст из второго поля и преобразуем его в число
+        // We get the text from the Excl. VAT field and convert it to a number
         cy.get(
           "#app > div.oki-main-container.full-height.container-fluid.main-active > div > div.px-0.mx-0.full-height.main-container.col > div > div.page-container.d-flex.flex-column.full-height.full-width > div.okioki-container.full-height.flex-grow-1.container-fluid.dark > div > div.okioki-container.d-flex.flex-column.full-height.col.standard.second-pane.col-lg-4 > div > div > div > div > div.scan-row > div > div.px-normal.flex-grow-1.pb-wide.scroll-box.scrollbar-light > ul > li.props-table-item.vat-section-body > div.single-line > span > table > tbody > tr > td:nth-child(2) > div > div > div"
         )
           .invoke("text")
           .then((text2) => {
-            cy.log("Original text 2:", text2); // Логируем полученный текст
+            cy.log("Original text 2:", text2); // Logging the received text
 
-            // Очищаем текст от всех символов, кроме цифр и запятых
+            // Clear the text of all characters except numbers and commas
             const cleanedText2 = text2.replace(/[^\d,]/g, "");
             cy.log("Cleaned text 2:", cleanedText2);
 
-            // Преобразуем текст в число
+            // Convert text to number
             const number2 = parseFloat(cleanedText2.replace(/,/g, "."));
             cy.log("Number 2:", number2);
 
-            // Пытаемся выполнить проверку на равенство чисел
+            // Trying to check for equality of numbers
             try {
               expect(number1).to.equal(number2);
             } catch (error) {
-              // Если числа не равны, выведем сообщение в лог
+              // If the numbers are not equal, we display a message in the log
               const errorMessage =
                 error instanceof Error ? error.message : "Unknown error";
               cy.log("Numbers are not equal:", errorMessage);
             } finally {
-              // Продолжаем выполнение теста, даже если числа не равны
-              // Проверку мы уже сделали, теперь просто записываем ошибку в лог
-              cy.log("Continuing with the test...");
+              // Continue the test even if the numbers are not equal
+              cy.log("Continuing with the test..."); // If there was an error, write it to the log
             }
           });
       });
 
-    // Получаем текст из первого поля (Amount incl. VAT) и вычитаем из него значение второго поля (Amount excl. VAT)
+    // Subtract the number from the Amount incl. VAT field from the number in the Amount excl. VAT field. The resulting value is compared with the number in the VAT field
+    // Getting text from the Amount incl. VAT field
     cy.get(
       "#app > div.oki-main-container.full-height.container-fluid.main-active > div > div.px-0.mx-0.full-height.main-container.col > div > div.page-container.d-flex.flex-column.full-height.full-width > div.okioki-container.full-height.flex-grow-1.container-fluid.dark > div > div.okioki-container.d-flex.flex-column.full-height.col.standard.second-pane.col-lg-4 > div > div > div > div > div.scan-row > div > div.px-normal.flex-grow-1.pb-wide.scroll-box.scrollbar-light > ul > li:nth-child(3) > div.single-line > span.value > div > div.wrapper.editable.justify-content-end > div"
     )
       .invoke("text")
       .then((text1) => {
-        cy.log("Amount incl. VAT:", text1); // Логируем полученный текст
+        cy.log("Amount incl. VAT:", text1); // Logging the received text
 
-        // Очищаем текст от всех символов, кроме цифр и запятых
+        // Clear the text of all characters except numbers and commas
         const cleanedText1 = text1.replace(/[^\d,]/g, "");
         cy.log("Cleaned Amount incl. VAT:", cleanedText1);
 
-        // Преобразуем текст в число
+        // Convert text to number
         const amountInclVAT = parseFloat(cleanedText1.replace(/,/g, "."));
         cy.log("Amount incl. VAT:", amountInclVAT);
 
-        // Получаем текст из второго поля (Amount excl. VAT)
+        // Getting text from the Amount excl. VAT field
         cy.get(
           "#app > div.oki-main-container.full-height.container-fluid.main-active > div > div.px-0.mx-0.full-height.main-container.col > div > div.page-container.d-flex.flex-column.full-height.full-width > div.okioki-container.full-height.flex-grow-1.container-fluid.dark > div > div.okioki-container.d-flex.flex-column.full-height.col.standard.second-pane.col-lg-4 > div > div > div > div > div.scan-row > div > div.px-normal.flex-grow-1.pb-wide.scroll-box.scrollbar-light > ul > li:nth-child(4) > div.single-line > span.value > div > div.wrapper.editable.justify-content-end > div"
         )
           .invoke("text")
           .then((text2) => {
-            cy.log("Amount excl. VAT:", text2); // Логируем полученный текст
+            cy.log("Amount excl. VAT:", text2); // Logging the received text
 
-            // Очищаем текст от всех символов, кроме цифр и запятых
+            // Clear the text of all characters except numbers and commas
             const cleanedText2 = text2.replace(/[^\d,]/g, "");
             cy.log("Cleaned Amount excl. VAT:", cleanedText2);
 
-            // Преобразуем текст в число
+            // Convert text to number
             const amountExclVAT = parseFloat(cleanedText2.replace(/,/g, "."));
             cy.log("Amount excl. VAT:", amountExclVAT);
 
-            // Вычисляем VAT с округлением до двух знаков после запятой
+            // Subtraction rounded to two decimal places
             const calculatedVAT = (amountInclVAT - amountExclVAT).toFixed(2);
             cy.log("Calculated VAT:", calculatedVAT);
 
-            // Получаем текст из третьего поля (VAT)
+            // Getting text from the VAT field
             cy.get(
               "#app > div.oki-main-container.full-height.container-fluid.main-active > div > div.px-0.mx-0.full-height.main-container.col > div > div.page-container.d-flex.flex-column.full-height.full-width > div.okioki-container.full-height.flex-grow-1.container-fluid.dark > div > div.okioki-container.d-flex.flex-column.full-height.col.standard.second-pane.col-lg-4 > div > div > div > div > div.scan-row > div > div.px-normal.flex-grow-1.pb-wide.scroll-box.scrollbar-light > ul > li.props-table-item.vat-section-body > div.single-line > span > table > tbody > tr > td.text-right.last-col > div > div > div"
             )
               .invoke("text")
               .then((text3) => {
-                cy.log("VAT:", text3); // Логируем полученный текст
+                cy.log("VAT:", text3); // Logging the received text
 
-                // Очищаем текст от всех символов, кроме цифр и запятых
+                // Clear the text of all characters except numbers and commas
                 const cleanedText3 = text3.replace(/[^\d,]/g, "");
                 cy.log("Cleaned VAT:", cleanedText3);
 
-                // Преобразуем текст в число
+                // Convert text to number
                 const VAT = parseFloat(cleanedText3.replace(/,/g, "."));
                 cy.log("VAT:", VAT);
 
-                // Пытаемся выполнить проверку на равенство VAT и рассчитанного значения
+                // Trying to check for equality between VAT and the calculated value
                 try {
                   expect(calculatedVAT).to.equal(VAT.toFixed(2)); // Округляем VAT до двух знаков после запятой
                 } catch (error) {
-                  // Если числа не равны, выведем сообщение в лог
+                  // If the numbers are not equal, we display a message in the log
                   const errorMessage =
                     error instanceof Error ? error.message : "Unknown error";
                   cy.log("VAT is not equal to calculated VAT:", errorMessage);
                 } finally {
-                  // Продолжаем выполнение теста, даже если числа не совпадают
-                  // Проверку мы уже сделали, теперь просто записываем ошибку в лог
-                  cy.log("Continuing with the test...");
+                  // Continue the test even if the numbers don't match
+                  cy.log("Continuing with the test..."); // If there was an error, write it to the log
                 }
               });
           });
       });
-
-    cy.get(
-      "li.props-table-item:nth-child(6) > div:nth-child(1) > span:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1)"
-    ).click();
   });
 });
