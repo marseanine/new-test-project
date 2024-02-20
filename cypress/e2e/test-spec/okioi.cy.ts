@@ -29,7 +29,7 @@ describe("Testing edition of VAT", () => {
 
   it("editing Amount incl. VAT field", () => {
     // Enter the generated random number in the Amount incl field. VAT
-    cy.amountIncllVATField().click().clear().type(randomNumber.toString());
+    cy.amountInclVATField().click().clear().type(randomNumber.toString());
 
     // Check that the text in the header matches the entered value in the Amount incl field. VAT
     cy.get(".amount-negative").click();
@@ -48,7 +48,7 @@ describe("Testing edition of VAT", () => {
     // Check that the value in the Amount excl. VAT is considered correct
     // Get the text from the Amount incl field. VAT and convert it to a number
 
-    cy.amountIncllVATField()
+    cy.amountInclVATField()
       .invoke("text")
       .then((text) => {
         cy.log("Original text:", text); // Logging the received text;
@@ -112,7 +112,7 @@ describe("Testing edition of VAT", () => {
 
         // Check that the value in the Amount incl field. VAT matches the value in the Amount to pay field
         // Get the text from the Amount incl. VAT field
-        cy.amountIncllVATField()
+        cy.amountInclVATField()
           .invoke("text")
           .then((text1) => {
             cy.log("Text from first field:", text1);
@@ -201,7 +201,7 @@ describe("Testing edition of VAT", () => {
 
     // Subtract the number from the Amount incl. VAT field from the number in the Amount excl. VAT field. The resulting value is compared with the number in the VAT field
     // Getting text from the Amount incl. VAT field
-    cy.amountIncllVATField()
+    cy.amountInclVATField()
       .invoke("text")
       .then((text1) => {
         cy.log("Amount incl. VAT:", text1); // Logging the received text;
@@ -297,7 +297,7 @@ describe("Testing edition of VAT", () => {
             const amountInclVat = (amountExclVat * rate).toFixed(2);
 
             // Get the text from the Amount incl. VAT field and convert it to a number
-            cy.amountIncllVATField()
+            cy.amountInclVATField()
               .invoke("text")
               .then((amountInclVatText) => {
                 // Convert the text to a number
@@ -393,7 +393,7 @@ describe("Testing edition of VAT", () => {
           });
       });
 
-    cy.amountIncllVATField()
+    cy.amountInclVATField()
       .invoke("text")
       .then((amountInclVatText) => {
         // Convert the text to a number
@@ -434,6 +434,205 @@ describe("Testing edition of VAT", () => {
                     "Difference between Amount incl. VAT and Amount excl. VAT does not match VAT:",
                     errorMessage
                   );
+                }
+              });
+          });
+      });
+  });
+
+  it("editing Amount to pay field", () => {
+    isLoggedIn = false;
+
+    // Enter the generated random number in the Amount to pay field
+    cy.amountToPayField().click().clear().type(randomNumber.toString());
+
+    // Check that the text in the header matches the entered value in the Amount incl field. VAT
+    cy.get(".amount-negative").click();
+
+    cy.wait(2000);
+
+    // Get text from the "Amount to pay" field and the header
+    cy.amountToPayField()
+      .invoke("text")
+      .then((amountToPayText) => {
+        // Remove characters except digits, commas, and minus sign
+        const amountToPay = parseFloat(amountToPayText.replace(/[^\d,-]/g, ""));
+
+        // Get text from the "Amount to pay" field and the header
+        cy.amountToPayField()
+          .invoke("text")
+          .then((amountToPayText) => {
+            // Remove characters except digits, commas, and decimal points
+            const amountToPay = parseFloat(
+              amountToPayText.replace(/[^\d,.-]/g, "").replace(",", ".")
+            );
+
+            cy.get(".amount-negative")
+              .invoke("text")
+              .then((headerValueText) => {
+                // Remove characters except digits, commas, and decimal points
+                const headerValue = parseFloat(
+                  headerValueText.replace(/[^\d,.-]/g, "").replace(",", ".")
+                );
+
+                // Compare values
+                try {
+                  expect(amountToPay).to.equal(headerValue);
+                } catch (error) {
+                  // If values are different, log an error message
+                  const errorMessage =
+                    error instanceof Error ? error.message : "Unknown error";
+                  cy.log(
+                    "Amount to pay does not match header value:",
+                    errorMessage
+                  );
+                }
+              });
+          });
+      });
+    cy.amountToPayField()
+      .invoke("text")
+      .then((amountToPayText) => {
+        // Remove characters except digits and commas
+        const amountToPay = parseFloat(
+          amountToPayText.replace(/[^\d,]/g, "").replace(",", ".")
+        );
+
+        cy.amountInclVATField()
+          .invoke("text")
+          .then((amountInclVATText) => {
+            // Remove characters except digits and commas
+            const amountInclVAT = parseFloat(
+              amountInclVATText.replace(/[^\d,]/g, "").replace(",", ".")
+            );
+
+            // Compare values
+            try {
+              expect(amountToPay).to.equal(amountInclVAT);
+            } catch (error) {
+              // If values are different, log an error message
+              const errorMessage =
+                error instanceof Error ? error.message : "Unknown error";
+              cy.log(
+                "Amount to pay does not match Amount incl. VAT:",
+                errorMessage
+              );
+            }
+          });
+      });
+
+    // Get text from the "Amount to pay" field
+    cy.amountToPayField()
+      .invoke("text")
+      .then((amountToPayText) => {
+        // Remove characters except digits, commas, and minus sign
+        const amountToPay = parseFloat(amountToPayText.replace(/[^\d,-]/g, ""));
+
+        // Get text from the "Rate" field
+        cy.rateField()
+          .invoke("text")
+          .then((rateText) => {
+            // Remove characters except digits and percent sign
+            const rate = parseFloat(rateText.replace(/[^\d]/g, "")) / 100 + 1;
+
+            // Calculate the value by dividing "Amount to pay" by the VAT coefficient
+            const calculatedAmountExclVAT = (amountToPay / rate).toFixed(2);
+
+            // Get text from the "Amount excl. VAT" field
+            cy.amountExclVATField()
+              .invoke("text")
+              .then((amountExclVATText) => {
+                // Remove characters except digits, commas, and minus sign
+                const amountExclVAT = parseFloat(
+                  amountExclVATText.replace(/[^\d,-]/g, "")
+                );
+
+                // Compare values
+                try {
+                  expect(calculatedAmountExclVAT).to.equal(amountExclVAT);
+                } catch (error) {
+                  // If values are different, log an error message
+                  const errorMessage =
+                    error instanceof Error ? error.message : "Unknown error";
+                  cy.log(
+                    "Calculated Amount excl. VAT does not match Amount excl. VAT:",
+                    errorMessage
+                  );
+                }
+              });
+          });
+      });
+    cy.amountToPayField()
+      .invoke("text")
+      .then((amountToPayText) => {
+        // Remove characters except digits, commas, and minus sign
+        const amountToPay = parseFloat(amountToPayText.replace(/[^\d,-]/g, ""));
+
+        // Get text from the "Rate" field
+        cy.rateField()
+          .invoke("text")
+          .then((rateText) => {
+            // Remove characters except digits and percent sign
+            const rate = parseFloat(rateText.replace(/[^\d]/g, "")) / 100 + 1;
+
+            // Calculate the value by dividing "Amount to pay" by the VAT coefficient
+            const calculatedExclVAT = (amountToPay / rate).toFixed(2);
+
+            // Get text from the "Excl. VAT" field
+            cy.exclVatField()
+              .invoke("text")
+              .then((exclVATText) => {
+                // Remove characters except digits, commas, and minus sign
+                const exclVAT = parseFloat(exclVATText.replace(/[^\d,-]/g, ""));
+
+                // Compare values
+                try {
+                  expect(calculatedExclVAT).to.equal(exclVAT);
+                } catch (error) {
+                  // If values are different, log an error message
+                  const errorMessage =
+                    error instanceof Error ? error.message : "Unknown error";
+                  cy.log(
+                    "Calculated Excl. VAT does not match Excl. VAT:",
+                    errorMessage
+                  );
+                }
+              });
+          });
+      });
+
+    // Get text from the "Amount to pay" field
+    cy.amountToPayField()
+      .invoke("text")
+      .then((amountToPayText) => {
+        // Remove characters except digits, commas, and minus sign
+        const amountToPay = parseFloat(amountToPayText.replace(/[^\d,-]/g, ""));
+
+        // Get text from the "Excl. VAT" field
+        cy.exclVatField()
+          .invoke("text")
+          .then((exclVATText) => {
+            // Remove characters except digits, commas, and minus sign
+            const exclVAT = parseFloat(exclVATText.replace(/[^\d,-]/g, ""));
+
+            // Subtract the value of "Excl. VAT" from the value of "Amount to pay"
+            const calculatedVAT = (amountToPay - exclVAT).toFixed(2);
+
+            // Get text from the "VAT" field
+            cy.vatField()
+              .invoke("text")
+              .then((vatText) => {
+                // Remove characters except digits, commas, and minus sign
+                const vat = parseFloat(vatText.replace(/[^\d,-]/g, ""));
+
+                // Compare values
+                try {
+                  expect(calculatedVAT).to.equal(vat);
+                } catch (error) {
+                  // If values are different, log an error message
+                  const errorMessage =
+                    error instanceof Error ? error.message : "Unknown error";
+                  cy.log("Calculated VAT does not match VAT:", errorMessage);
                 }
               });
           });

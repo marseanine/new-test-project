@@ -21,7 +21,7 @@ Cypress.Commands.add("login", (email: string, password: string) => {
   cy.url().should("eq", "https://www.okioki.app/dashboard");
 });
 
-Cypress.Commands.add("amountIncllVATField", () => {
+Cypress.Commands.add("amountInclVATField", () => {
   return cy.get(
     "li.props-table-item:nth-child(3) > div:nth-child(1) > span:nth-child(2) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1)"
   );

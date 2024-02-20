@@ -4,7 +4,7 @@ declare namespace Cypress {
      * Custom command to get props table item
      * @example cy.getPropsTableItem()
      */
-    amountIncllVATField(): Chainable<any>;
+    amountInclVATField(): Chainable<any>;
     amountExclVATField(): Chainable<any>;
     login(): Chainable<any>;
     rateField(): Chainable<any>;
