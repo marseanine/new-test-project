@@ -4,61 +4,32 @@ import "@4tw/cypress-drag-drop";
 describe("Testing edition of VAT", () => {
   const email = "vincent.depoortere+demo4testers@gmail.com";
   const password = "Demo4Testers";
+  const randomNumber = Math.floor(Math.random() * 1000); // Generating a random number (from 0 to 999)
   let isLoggedIn = false;
 
-  // Login before each test
   beforeEach(() => {
     if (!isLoggedIn) {
-      cy.visit("https://okioki.app");
+      cy.login(email, password); // Вызов команды логина
 
-      // Enter Username
-      cy.xpath('//*[@id="Username"]').type(email).should("have.value", email);
+      //isLoggedIn = true;
 
-      // Enter Password
-      cy.xpath('//*[@id="Password"]')
-        .type(password)
-        .should("have.value", password);
+      // Open document page
+      cy.visit(
+        "https://www.okioki.app/booking/b141d57c-a65d-4ad5-d694-08dac681ea18"
+      );
+      cy.wait(5000);
 
-      // Click Login button
-      cy.xpath('//*[@id="account"]/button').click();
-
-      cy.wait(10000);
-
-      // Wait for the drawer element to appear on the dashboard page
-      cy.xpath('//*[@id="app"]/div[1]/div/div[1]/div/div[1]', {
-        timeout: 10000,
-      }).should("be.visible");
-
-      // Verify successful login
-      cy.url().should("eq", "https://www.okioki.app/dashboard");
-
-      isLoggedIn = true;
+      // Checking for the presence of an element called Telenet BV
+      cy.get("div.flex-row:nth-child(2)")
+        .should("exist")
+        .contains("Telenet BV")
+        .click();
     }
   });
 
   it("editing Amount incl. VAT field", () => {
-    // Open document page
-    cy.visit(
-      "https://www.okioki.app/booking/b141d57c-a65d-4ad5-d694-08dac681ea18"
-    );
-    cy.wait(5000);
-
-    // Checking for the presence of an element called Telenet BV
-    cy.get("div.flex-row:nth-child(2)")
-      .should("exist")
-      .contains("Telenet BV")
-      .click();
-
-    // Generating a random number (from 0 to 999)
-    const randomNumber = Math.floor(Math.random() * 1000);
-
     // Enter the generated random number in the Amount incl field. VAT
-    cy.get(
-      "li.props-table-item:nth-child(3) > div:nth-child(1) > span:nth-child(2) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1)"
-    )
-      .click()
-      .clear()
-      .type(randomNumber.toString());
+    cy.amountIncllVATField().click().clear().type(randomNumber.toString());
 
     // Check that the text in the header matches the entered value in the Amount incl field. VAT
     cy.get(".amount-negative").click();
@@ -76,12 +47,11 @@ describe("Testing edition of VAT", () => {
 
     // Check that the value in the Amount excl. VAT is considered correct
     // Get the text from the Amount incl field. VAT and convert it to a number
-    cy.get(
-      "li.props-table-item:nth-child(3) > div:nth-child(1) > span:nth-child(2) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1)"
-    )
+
+    cy.amountIncllVATField()
       .invoke("text")
       .then((text) => {
-        cy.log("Original text:", text); // Logging the received text
+        cy.log("Original text:", text); // Logging the received text;
 
         // Clear the text of all characters except numbers and commas
         const cleanedText = text.replace(/[^\d,]/g, "");
@@ -92,9 +62,7 @@ describe("Testing edition of VAT", () => {
         cy.log("Original number:", originalNumber);
 
         // Getting text from the Rate field with a percentage
-        cy.get(
-          "#app > div.oki-main-container.full-height.container-fluid.main-active > div > div.px-0.mx-0.full-height.main-container.col > div > div.page-container.d-flex.flex-column.full-height.full-width > div.okioki-container.full-height.flex-grow-1.container-fluid.dark > div > div.okioki-container.d-flex.flex-column.full-height.col.standard.second-pane.col-lg-4 > div > div > div > div > div.scan-row > div > div.px-normal.flex-grow-1.pb-wide.scroll-box.scrollbar-light > ul > li.props-table-item.vat-section-body > div.single-line > span > table > tbody > tr > td.first-col > div > div > div"
-        )
+        cy.rateField()
           .invoke("text")
           .then((percentageText) => {
             // Convert the percentage to a string and clear it of extra characters
@@ -111,9 +79,8 @@ describe("Testing edition of VAT", () => {
               const dividedNumber: number = originalNumber / percentageNumber;
 
               // Get the text from the Amount excl field. VAT
-              cy.get(
-                "#app > div.oki-main-container.full-height.container-fluid.main-active > div > div.px-0.mx-0.full-height.main-container.col > div > div.page-container.d-flex.flex-column.full-height.full-width > div.okioki-container.full-height.flex-grow-1.container-fluid.dark > div > div.okioki-container.d-flex.flex-column.full-height.col.standard.second-pane.col-lg-4 > div > div > div > div > div.scan-row > div > div.px-normal.flex-grow-1.pb-wide.scroll-box.scrollbar-light > ul > li:nth-child(4) > div.single-line > span.value > div > div.wrapper.editable.justify-content-end > div"
-              )
+
+              cy.amountExclVATField()
                 .invoke("text")
                 .then((newText) => {
                   cy.log("New text:", newText); // Logging the received text
@@ -145,9 +112,7 @@ describe("Testing edition of VAT", () => {
 
         // Check that the value in the Amount incl field. VAT matches the value in the Amount to pay field
         // Get the text from the Amount incl. VAT field
-        cy.get(
-          "li.props-table-item:nth-child(3) > div:nth-child(1) > span:nth-child(2) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1)"
-        )
+        cy.amountIncllVATField()
           .invoke("text")
           .then((text1) => {
             cy.log("Text from first field:", text1);
@@ -161,9 +126,7 @@ describe("Testing edition of VAT", () => {
             cy.log("Number from first field:", number1);
 
             // Get the text from the Amount to pay field
-            cy.get(
-              "li.props-table-item:nth-child(7) > div:nth-child(2) > span:nth-child(2) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1)"
-            )
+            cy.amountToPayField()
               .invoke("text")
               .then((text2) => {
                 cy.log("Text from second field:", text2);
@@ -193,9 +156,8 @@ describe("Testing edition of VAT", () => {
 
     // Compare the value in the Amount excl. VAT field and the value in the Excl. VAT field
     // We get the text from the Amount excl. VAT field and convert it to a number
-    cy.get(
-      "#app > div.oki-main-container.full-height.container-fluid.main-active > div > div.px-0.mx-0.full-height.main-container.col > div > div.page-container.d-flex.flex-column.full-height.full-width > div.okioki-container.full-height.flex-grow-1.container-fluid.dark > div > div.okioki-container.d-flex.flex-column.full-height.col.standard.second-pane.col-lg-4 > div > div > div > div > div.scan-row > div > div.px-normal.flex-grow-1.pb-wide.scroll-box.scrollbar-light > ul > li:nth-child(4) > div.single-line > span.value > div > div.wrapper.editable.justify-content-end > div"
-    )
+
+    cy.amountExclVATField()
       .invoke("text")
       .then((text1) => {
         cy.log("Original text 1:", text1); // Logging the received text
@@ -209,9 +171,7 @@ describe("Testing edition of VAT", () => {
         cy.log("Number 1:", number1);
 
         // We get the text from the Excl. VAT field and convert it to a number
-        cy.get(
-          "#app > div.oki-main-container.full-height.container-fluid.main-active > div > div.px-0.mx-0.full-height.main-container.col > div > div.page-container.d-flex.flex-column.full-height.full-width > div.okioki-container.full-height.flex-grow-1.container-fluid.dark > div > div.okioki-container.d-flex.flex-column.full-height.col.standard.second-pane.col-lg-4 > div > div > div > div > div.scan-row > div > div.px-normal.flex-grow-1.pb-wide.scroll-box.scrollbar-light > ul > li.props-table-item.vat-section-body > div.single-line > span > table > tbody > tr > td:nth-child(2) > div > div > div"
-        )
+        cy.exclVatField()
           .invoke("text")
           .then((text2) => {
             cy.log("Original text 2:", text2); // Logging the received text
@@ -241,12 +201,10 @@ describe("Testing edition of VAT", () => {
 
     // Subtract the number from the Amount incl. VAT field from the number in the Amount excl. VAT field. The resulting value is compared with the number in the VAT field
     // Getting text from the Amount incl. VAT field
-    cy.get(
-      "#app > div.oki-main-container.full-height.container-fluid.main-active > div > div.px-0.mx-0.full-height.main-container.col > div > div.page-container.d-flex.flex-column.full-height.full-width > div.okioki-container.full-height.flex-grow-1.container-fluid.dark > div > div.okioki-container.d-flex.flex-column.full-height.col.standard.second-pane.col-lg-4 > div > div > div > div > div.scan-row > div > div.px-normal.flex-grow-1.pb-wide.scroll-box.scrollbar-light > ul > li:nth-child(3) > div.single-line > span.value > div > div.wrapper.editable.justify-content-end > div"
-    )
+    cy.amountIncllVATField()
       .invoke("text")
       .then((text1) => {
-        cy.log("Amount incl. VAT:", text1); // Logging the received text
+        cy.log("Amount incl. VAT:", text1); // Logging the received text;
 
         // Clear the text of all characters except numbers and commas
         const cleanedText1 = text1.replace(/[^\d,]/g, "");
@@ -257,9 +215,7 @@ describe("Testing edition of VAT", () => {
         cy.log("Amount incl. VAT:", amountInclVAT);
 
         // Getting text from the Amount excl. VAT field
-        cy.get(
-          "#app > div.oki-main-container.full-height.container-fluid.main-active > div > div.px-0.mx-0.full-height.main-container.col > div > div.page-container.d-flex.flex-column.full-height.full-width > div.okioki-container.full-height.flex-grow-1.container-fluid.dark > div > div.okioki-container.d-flex.flex-column.full-height.col.standard.second-pane.col-lg-4 > div > div > div > div > div.scan-row > div > div.px-normal.flex-grow-1.pb-wide.scroll-box.scrollbar-light > ul > li:nth-child(4) > div.single-line > span.value > div > div.wrapper.editable.justify-content-end > div"
-        )
+        cy.amountExclVATField()
           .invoke("text")
           .then((text2) => {
             cy.log("Amount excl. VAT:", text2); // Logging the received text
@@ -277,9 +233,7 @@ describe("Testing edition of VAT", () => {
             cy.log("Calculated VAT:", calculatedVAT);
 
             // Getting text from the VAT field
-            cy.get(
-              "#app > div.oki-main-container.full-height.container-fluid.main-active > div > div.px-0.mx-0.full-height.main-container.col > div > div.page-container.d-flex.flex-column.full-height.full-width > div.okioki-container.full-height.flex-grow-1.container-fluid.dark > div > div.okioki-container.d-flex.flex-column.full-height.col.standard.second-pane.col-lg-4 > div > div > div > div > div.scan-row > div > div.px-normal.flex-grow-1.pb-wide.scroll-box.scrollbar-light > ul > li.props-table-item.vat-section-body > div.single-line > span > table > tbody > tr > td.text-right.last-col > div > div > div"
-            )
+            cy.vatField()
               .invoke("text")
               .then((text3) => {
                 cy.log("VAT:", text3); // Logging the received text
@@ -303,6 +257,183 @@ describe("Testing edition of VAT", () => {
                 } finally {
                   // Continue the test even if the numbers don't match
                   cy.log("Continuing with the test..."); // If there was an error, write it to the log
+                }
+              });
+          });
+      });
+  });
+
+  it("editing Amount incl. VAT field", () => {
+    isLoggedIn = false;
+
+    // Enter the generated random number in the Amount excl. VAT field
+    cy.amountExclVATField().click().clear().type(randomNumber.toString());
+
+    // Check that the text in the header matches the entered value in the Amount incl field. VAT
+    cy.get(".amount-negative").click();
+
+    cy.wait(2000);
+
+    // Get the text from the Amount excl. VAT field and convert it to a number
+    cy.amountExclVATField()
+      .invoke("text")
+      .then((amountExclVatText) => {
+        // Convert the text to a number
+        const amountExclVat = parseFloat(
+          amountExclVatText.replace(/[^\d,]/g, "").replace(",", ".")
+        );
+
+        // Get the text from the Rate field with a percentage
+        cy.rateField()
+          .invoke("text")
+          .then((rateText) => {
+            // Convert the percentage to a number
+            const rate =
+              parseFloat(rateText.replace(/[^\d,]/g, "").replace(",", ".")) /
+                100 +
+              1;
+
+            // Calculate the amount incl. VAT
+            const amountInclVat = (amountExclVat * rate).toFixed(2);
+
+            // Get the text from the Amount incl. VAT field and convert it to a number
+            cy.amountIncllVATField()
+              .invoke("text")
+              .then((amountInclVatText) => {
+                // Convert the text to a number
+                const amountInclVatFromField = parseFloat(
+                  amountInclVatText.replace(/[^\d,]/g, "").replace(",", ".")
+                );
+
+                // Compare the calculated amount incl. VAT with the amount from the field
+                expect(parseFloat(amountInclVat)).to.equal(
+                  amountInclVatFromField
+                );
+              });
+          });
+      });
+
+    cy.amountExclVATField()
+      .invoke("text")
+      .then((amountExclVatText) => {
+        // Convert the text to a number
+        const amountExclVat = parseFloat(
+          amountExclVatText.replace(/[^\d,]/g, "").replace(",", ".")
+        );
+
+        // Get the text from the Rate field with a percentage
+        cy.rateField()
+          .invoke("text")
+          .then((rateText) => {
+            // Convert the percentage to a number
+            const rate =
+              parseFloat(rateText.replace(/[^\d,]/g, "").replace(",", ".")) /
+                100 +
+              1;
+
+            // Calculate the amount incl. VAT
+            const amountToPay = (amountExclVat * rate).toFixed(2);
+
+            // Get the text from the Amount to pay field and convert it to a number
+            cy.amountToPayField()
+              .invoke("text")
+              .then((amountToPayText) => {
+                // Convert the text to a number
+                const amountToPayFromField = parseFloat(
+                  amountToPayText.replace(/[^\d,]/g, "").replace(",", ".")
+                );
+
+                // Compare the calculated amount to pay with the amount from the field
+                try {
+                  expect(parseFloat(amountToPay)).to.equal(
+                    amountToPayFromField
+                  );
+                } catch (error) {
+                  // If the numbers are not equal, log the error message
+                  const errorMessage =
+                    error instanceof Error ? error.message : "Unknown error";
+                  cy.log(
+                    "Amount to pay does not match calculated amount:",
+                    errorMessage
+                  );
+                }
+              });
+          });
+      });
+    // Get the text from the Amount excl. VAT field and convert it to a number
+    cy.amountExclVATField()
+      .invoke("text")
+      .then((amountExclVatText) => {
+        // Convert the text to a number
+        const amountExclVat = parseFloat(
+          amountExclVatText.replace(/[^\d,]/g, "").replace(",", ".")
+        );
+
+        // Get the text from the Excl. VAT field and convert it to a number
+        cy.exclVatField()
+          .invoke("text")
+          .then((exclVatText) => {
+            // Convert the text to a number
+            const exclVat = parseFloat(
+              exclVatText.replace(/[^\d,]/g, "").replace(",", ".")
+            );
+
+            // Compare the values and log an error if they don't match
+            try {
+              expect(amountExclVat).to.equal(exclVat);
+            } catch (error) {
+              // If the numbers are not equal, log the error message
+              const errorMessage =
+                error instanceof Error ? error.message : "Unknown error";
+              cy.log(
+                "Amount excl. VAT does not match Excl. VAT:",
+                errorMessage
+              );
+            }
+          });
+      });
+
+    cy.amountIncllVATField()
+      .invoke("text")
+      .then((amountInclVatText) => {
+        // Convert the text to a number
+        const amountInclVat = parseFloat(
+          amountInclVatText.replace(/[^\d,]/g, "").replace(",", ".")
+        );
+
+        // Get the text from the Amount excl. VAT field and convert it to a number
+        cy.amountExclVATField()
+          .invoke("text")
+          .then((amountExclVatText) => {
+            // Convert the text to a number
+            const amountExclVat = parseFloat(
+              amountExclVatText.replace(/[^\d,]/g, "").replace(",", ".")
+            );
+
+            // Calculate the difference between Amount incl. VAT and Amount excl. VAT and round it to two decimal places
+            const difference =
+              Math.round((amountInclVat - amountExclVat) * 100) / 100;
+
+            // Get the text from the VAT field and convert it to a number
+            cy.vatField()
+              .invoke("text")
+              .then((vatText) => {
+                // Convert the text to a number
+                const vat = parseFloat(
+                  vatText.replace(/[^\d,]/g, "").replace(",", ".")
+                );
+
+                // Compare the calculated difference with the VAT
+                try {
+                  expect(difference).to.equal(vat);
+                } catch (error) {
+                  // If the numbers are not equal, log the error message
+                  const errorMessage =
+                    error instanceof Error ? error.message : "Unknown error";
+                  cy.log(
+                    "Difference between Amount incl. VAT and Amount excl. VAT does not match VAT:",
+                    errorMessage
+                  );
                 }
               });
           });
